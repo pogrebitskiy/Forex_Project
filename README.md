@@ -1,4 +1,6 @@
 # Forex_Project
 
 
-https://code-with-me.global.jetbrains.com/20b30grHvxbHK3iRq86J3A#p=PY&fp=05AFED4D8CF923DDE2E6EE783425B2D9B889685BBEF5C0B4C3A1D4656B83893C
+https://code-with-me.global.jetbrains.com/Z0CaV2FMmqGsvWgzYHMD4g#p=PY&fp=5C6D7E4DC4BD6F44B061D7AF83E76A2F24890325158B2C63B4EB7B375876E052
+
+https://medium.com/predictive-analytics-for-stock-market-prediction/machine-learning-algorithm-for-stock-prediction-e75c678d05c7

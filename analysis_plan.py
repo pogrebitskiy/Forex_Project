@@ -33,15 +33,23 @@ FUNCTIONS HERE
     - Merge multiple years worth of data into one dataframe
 
 ##Analysis and Visualizations:
+- scale_cur()
+    - scales the currencies in order for t
 - moving_avg()
     - builds a moving function for a certain currency
-FUNCTIONS HERE
+
 """
-#%%
+# %%
 import requests
 from pprint import pprint
 import pandas as pd
-#%%
+import warnings
+import matplotlib.pyplot as plt
+import seaborn as sns
+warnings.filterwarnings("ignore")
+from sklearn.preprocessing import MinMaxScaler
+
+# %%
 
 def api_req(**kwargs):
     '''
@@ -63,47 +71,95 @@ def api_req(**kwargs):
     response = requests.get(url, params=params)
     data = response.json()
 
+    return pd.DataFrame(data['rates']).T
 
-    return  pd.DataFrame(data['rates']).T
 
-#%%
+# %%
 
-def merge_df_by_years(start_year, end_year, currencies = ""):
+def merge_df_by_years(start_year=1800, end_year=2020, symbols=""):
     '''
     Creates a dataframe containing the exchange rates from the start year to the end year.
+    Merge multiple years worth of data into one dataframe from the API call.
     :param start_year (int):
     :param end_year (int):
-    :param currencies (str):
+    :param symbols (str):
     :return: DataFrame
     '''
 
     df_output = pd.DataFrame()
-    for year in range(start_year, end_year, 2):
+    for year in range(start_year, end_year + 1):
         params = {
             'start_date': f'{year}-01-01',
-            'end_date': f'{year + 1}-01-01',
+            'end_date': f'{year}-12-31',
+            'symbols': symbols
         }
-        df_year = api_req(params)
+        df_year = api_req(start_date=params['start_date'],
+                          end_date=params['end_date'],
+                          symbols=params['symbols'])
         df_output = pd.concat([df_output, df_year])
+    df_output.dropna(inplace=True, axis=0)
     return df_output
 
-#Visualizations
 
-def moving_avg(df, roll, *curs):
+# Visualizations
+def scale_cur(df):
+    '''
+    Scales the exchange rates for a dataframe of currencies
+    df- dataframe
+    returns a scaled dataframe
+    '''
+
+    cols = df.columns
+    # fitting a scaler
+    scaler = MinMaxScaler()
+    df_scaled = scaler.fit_transform(df.to_numpy())
+    df_scaled = pd.DataFrame(df_scaled, columns=cols)
+
+    # updating indexes to be dates
+    df_scaled.index = df.index
+    return df_scaled
+'''
+df_scaled = scale_cur(df)
+df_scaled
+'''
+def moving_avg(df, roll, y, *curs):
     '''
     Creates a moving average plot for a given number of currencies and their moving averages
     df - dataframe, roll - int and number of days to be smoothed, *curs - list of currencies
     returns an updated df and a plot
     '''
     fig, ax = plt.subplots()
+
+    # Creating label based off graph type
+    plt.xlabel('Date')
+    if y == 'scale':
+        plt.ylabel('Scaled Exchange Rate')
+        plt.title('Scaled Currencies and Rolling Averages Time-Series')
+    else:
+        plt.ylabel('Exchange Rate')
+        plt.title('Currencies and Rolling Averages Time-Series')
+
+    # iterating across currencies
     for cur in curs:
         cur_idx = cur + '_avg'
+        # creating a rolling mean column and plotting both
         df[cur_idx] = df[cur].rolling(roll).mean()
         df_usd[[cur, cur_idx]].plot(ax=ax, label='ROLLING AVERAGE',
-                                  figsize=(16, 8))
+                                    figsize=(16, 8))
     return df
 
+
 '''
-df_usd = moving_avg(df, 30, 'GBP','EUR')
+df_usd = moving_avg(df, 30, '', 'GBP','EUR')
+df_usd = moving_avg(df_scaled, 30, 'scale', 'GBP')
+
 '''
 
+""""
+##Analysis Plan
+
+We plan to analyze our time-series data of the currencies using different regression models such
+as linear regression, quadratic regression, and logistic regression and comparing these models to 
+determine which one yields the best results. The time-series data will be converted to days since with the
+first day starting at 0. 
+"""
