@@ -64,6 +64,7 @@ def api_req(**kwargs):
         symbols	[optional] Enter a list of comma-separated currency codes to limit output currencies. example:symbols=USD,EUR,CZK
         amount	[optional] The amount to be converted. example:amount=1200
         places	[optional] Round numbers to decimal place. example:places=2
+        source	[optional] You can switch source data between (default) forex, bank view or crypto currencies. (ecb, crypto)
     '''
 
     params = kwargs
@@ -76,13 +77,13 @@ def api_req(**kwargs):
 
 # %%
 
-def merge_df_by_years(start_year=1800, end_year=2020, symbols=""):
+def merge_df_by_years(start_year, end_year, **kwargs):
     '''
     Creates a dataframe containing the exchange rates from the start year to the end year.
     Merge multiple years worth of data into one dataframe from the API call.
     :param start_year (int):
     :param end_year (int):
-    :param symbols (str):
+    :param kwargs: any other API call params
     :return: DataFrame
     '''
 
@@ -91,11 +92,9 @@ def merge_df_by_years(start_year=1800, end_year=2020, symbols=""):
         params = {
             'start_date': f'{year}-01-01',
             'end_date': f'{year}-12-31',
-            'symbols': symbols
         }
-        df_year = api_req(start_date=params['start_date'],
-                          end_date=params['end_date'],
-                          symbols=params['symbols'])
+        kwargs.update(params)
+        df_year = api_req(**kwargs)
         df_output = pd.concat([df_output, df_year])
     df_output.dropna(inplace=True, axis=0)
     return df_output
@@ -124,6 +123,7 @@ df_scaled
 '''
 def moving_avg(df, roll, y, *curs):
     '''
+
     Creates a moving average plot for a given number of currencies and their moving averages
     df - dataframe, roll - int and number of days to be smoothed, *curs - list of currencies
     returns an updated df and a plot
@@ -144,9 +144,11 @@ def moving_avg(df, roll, y, *curs):
         cur_idx = cur + '_avg'
         # creating a rolling mean column and plotting both
         df[cur_idx] = df[cur].rolling(roll).mean()
-        df_usd[[cur, cur_idx]].plot(ax=ax, label='ROLLING AVERAGE',
+        df[[cur, cur_idx]].plot(ax=ax, label='ROLLING AVERAGE',
                                     figsize=(16, 8))
     return df
+
+
 
 
 '''
@@ -155,11 +157,27 @@ df_usd = moving_avg(df_scaled, 30, 'scale', 'GBP')
 
 '''
 
+def calc_pct_change(df):
+    '''
+    Calculate the percent change of the currency each day
+    :param df: Dataframe containing currencies
+    :return: New dataframe containing the appended percent change columns
+    '''
+    pct_df = df.pct_change()
+    for col in pct_df.columns:
+        pct_df.rename(columns={col: col+"_pct_change"}, inplace=True)
+
+    return pd.concat([df, pct_df], axis=1)
+
+
 """"
-##Analysis Plan
+#Analysis Plan:
 
 We plan to analyze our time-series data of the currencies using different regression models such
-as linear regression, quadratic regression, and logistic regression and comparing these models to 
-determine which one yields the best results. The time-series data will be converted to days since with the
-first day starting at 0. 
+as linear regression, polynomial regression, logistic regression, and KNN regression and comparing these models to 
+determine which one yields the best results. The time-series data will be converted to 'number of 
+days since' with the first day starting at 0. 
+
+Additionally, the correlation of various currencies can be calculated and analyzed to determine which
+currencies may be correlated with one another. 
 """
