@@ -9,32 +9,7 @@
 
 
 # Abstract:
-WRITE ABSTRACT HERE
-
-# Introduction: The Foreign Exchange market is a global market for the trade of currencies. In free economies,
-the value of currencies are based off supply and demand. In some instances, countries peg their currency on another,
-meaning their currency moves in line with another. The fluctuation of currencies can also give economic indicators,
-such as which economies move in line with one another and the effect of current events. Further, there are many
-factors that affect currency value, such as trade, investment, tourism, and geopolitics. Inflation is a very influential
-economic phenomenon, and on top of influencing unemployment, it can have an effect on foreign exchange rates.
-
-We are analyzing how the fluctuation of one currency can predict the fluctuation of another.
-<img src="https://cdn.corporatefinanceinstitute.com/assets/foreign-exchange.jpeg" width=800px>
-
-# Data Description:
-To wrangle foreign exchange rates, request calls were made to [ExchangeRate API](
-https://exchangerate.host/#/#docs). These calls provided time-series data for each of the specified currencies. Because
-of the flexibility of the API, there were several customizable parameters to fine-tune the API request (date range,
- source, amount, base, etc). The API was limiting each request to 2 years of daily data, so we made functions to make
-  multiple requests between our start and end dates and concatenating them together. The final result was about 13 years
-   of daily exchange rates for multiple currencies (~4,700 rows).
-
-# Pipeline Overview:
-We accomplished this task with the following functions:
-## API and Formating Functions:
-- `api_req()`
-    - Makes an initial request to the API that includes time-series data of all of our
-    desired parameters using Python's kwargs feature.
+This projects aims to examine, analyze, and explain seemingly random and unpredictable movements in foreign exchange rates, potentially informing future investment and asset allocation problems. We gathered years of daily exchange rates for numerous currencies and tried to find interesting relationships between them. By normalizing the exchange rates, we were able to put currencies side by side to find mutual changes that can later be generalized to provide useful and relevant information for prediction. By utilizing linear models and feature imporances, we found that aggregating multiple currencies and analyzing their behavior can help explain volatility in another currency. To more accuractley test and integrate our findings, we suggest simulating investment actions like buying and selling based on movements that we've addressed in our linear models. Additionally, more advanced forcasting models should be used to see more robust results.
 
 - `merge_df_by_year()`
     - Merge multiple years worth of data into one dataframe because the API limits us
